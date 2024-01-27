@@ -1,57 +1,66 @@
-#include "vex.h"]
+#include "vex.h" 
+#include "robot-config.h"
 
-//variables 
-bool catDone = true; 
+bool toggle = false;
 
-bool catapultFinished() {
-  return catDone;
+void print() { 
+  Controller1.Screen.setCursor(1, 1);
+  Controller1.Screen.print(toggle);
 }
 
-void IntakeSpin(){  //hold button
-  Intake.spin(forward, 100, pct);
+void shoot() {
+  print();
+  if (!toggle) {
+    toggle = true;
+    MotorShooties.spin(fwd, 100 , pct);
+  }
+  else if (toggle) { 
+    MotorShooties.stop();
+    toggle = false;
+    return;
+  }
 }
 
-void outtakeSpin() {
-  Intake.spin(reverse, 100, pct);
+void shootOn() {
+  MotorShooties.spin(fwd,100,pct);
 }
 
-void IntakeStop(){
-  Intake.stop();
+void shootOff() {
+  MotorShooties.stop(hold);
 }
 
-void catapultHome() {   //brings catapult to home position and uses "pid" (hold brake type) to stay in place 
-  Catapult1.spinToPosition(0, degrees); 
-  //Catapult2.spinToPosition(0, degrees);
-  Catapult1.stop(hold);
-  //Catapult2.stop(hold);
+void blockUp() {
+  Blockah1.set(true);
+  Blockah2.set(true);
 }
 
-//"ready" position at 0 degree encs 
-void catapultOnce(/*bool waitForCompletion=true*/) {
-  catDone = false;
-
-  catapultHome();
-  Catapult1.spinToPosition(360, degrees); 
-  //Catapult2.spinToPosition(360, degrees);
-  catapultHome();
-
-  catDone = true;
-
+void blockDown() {
+  Blockah1.set(false);
+  Blockah2.set(false);
 }
 
-void rapidFire() {
-  Catapult1.spin(forward, 127, pct);
-  //Catapult2.spin(forward, 127, pct);
-  catapultHome();
-}
+// void tank() {
+//   LeftFront.spin(forward, Controller1.Axis3.value(), pct);
+//   LeftTop.spin(forward, Controller1.Axis3.value(), pct);
+//   LeftBack.spin(forward, Controller1.Axis3.value(), pct);
 
-void intakeDeploy() {
-  IntakePiston1.set(true); 
-  //IntakePiston2.set(true); 
+//   RightFront.spin(forward, Controller1.Axis2.value(), pct);
+//   RightTop.spin(forward, Controller1.Axis2.value(), pct);
+//   RightBack.spin(forward, Controller1.Axis2.value(), pct);
+// }
 
-}
+// void topMotors() {
+//     LeftTop.spin(fwd, Controller1.Axis3.value(), pct);
+//     RightTop.spin(fwd, Controller1.Axis2.value(), pct);
+// }
 
-void intakeRetract() {
-  IntakePiston1.set(false); 
-  //IntakePiston2.set(false); 
-}
+// void flapjackDeploy() {
+//   Flapjack.set(true); 
+//   // Flapjack2.set(true); 
+// }
+
+// void flapjackRetract() {
+//   Flapjack.set(false); 
+//   // Flapjack2.set(false); 
+// }
+
