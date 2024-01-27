@@ -8,27 +8,36 @@ using code = vision::code;
 brain  Brain;
 
 // VEXcode device constructors
-motor leftMotorA = motor(PORT18, ratio18_1, true);
-motor leftMotorB = motor(PORT20, ratio18_1, true);
-motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB);
-motor rightMotorA = motor(PORT19, ratio18_1, false);
-motor rightMotorB = motor(PORT16, ratio18_1, false);
-motor_group RightDriveSmart = motor_group(rightMotorA, rightMotorB);
-drivetrain Drivetrain = drivetrain(LeftDriveSmart, RightDriveSmart, 319.19, 295, 40, mm, 1);
+motor MotorShooties = motor(PORT19, ratio18_1, false);
+motor Intake = motor(PORT7, ratio18_1, true);
 controller Controller1 = controller(primary);
-motor Intake = motor(PORT7, ratio18_1, false);
-motor Catapult1 = motor(PORT9, ratio18_1, false);
-motor Catapult2 = motor(PORT12, ratio18_1, false);
-digital_out IntakePiston1 = digital_out(Brain.ThreeWirePort.A);
-digital_out IntakePiston2 = digital_out(Brain.ThreeWirePort.B);
-digital_out FlapjackPiston1 = digital_out(Brain.ThreeWirePort.E);
-digital_out flapjackPiston2 = digital_out(Brain.ThreeWirePort.G);
+digital_out Flapjack1 = digital_out(Brain.ThreeWirePort.D);
+digital_out Flapjack2 = digital_out(Brain.ThreeWirePort.B);
+digital_out Blockah1 = digital_out(Brain.ThreeWirePort.A);
+digital_out Blockah2 = digital_out(Brain.ThreeWirePort.C);
+
+//congigure right side of drivetrain
+motor RightMotorA = motor(PORT12, ratio18_1, false);
+motor RightMotorB = motor(PORT13, ratio18_1, false);
+motor RightTop = motor(PORT15, ratio18_1, false);
+motor_group RightDriveSmart = motor_group(RightMotorA, RightMotorB, RightTop);
+
+//configure left side of drivetrain 
+motor LeftMotorA = motor(PORT16, ratio18_1, true);
+motor LeftMotorB = motor(PORT17, ratio18_1, true);
+motor LeftTop = motor(PORT18, ratio18_1, true);
+motor_group LeftDriveSmart = motor_group(LeftMotorA, LeftMotorB, LeftTop);
+
+//configure everything together 
+gps DrivetrainGPS = gps(PORT11, 0.00, 0.00, mm, 180);
+inertial DrivetrainInertial = inertial(PORT3, right);
+rotation RotationalSensor = rotation(PORT5);
+smartdrive Drivetrain = smartdrive(LeftDriveSmart, RightDriveSmart, DrivetrainInertial, 319.19, 320, 40, mm, 0.6);
 
 // VEXcode generated functions
 // define variable for remote controller enable/disable
 bool RemoteControlCodeEnabled = true;
 // define variables used for controlling motors based on controller inputs
-bool Controller1LeftShoulderControlMotorsStopped = true;
 bool DrivetrainLNeedsToBeStopped_Controller1 = true;
 bool DrivetrainRNeedsToBeStopped_Controller1 = true;
 
@@ -81,18 +90,6 @@ int rc_auto_loop_function_Controller1() {
         RightDriveSmart.setVelocity(drivetrainRightSideSpeed, percent);
         RightDriveSmart.spin(forward);
       }
-      // check the ButtonL1/ButtonL2 status to control Intake
-      if (Controller1.ButtonL1.pressing()) {
-        Intake.spin(forward);
-        Controller1LeftShoulderControlMotorsStopped = false;
-      } else if (Controller1.ButtonL2.pressing()) {
-        Intake.spin(reverse);
-        Controller1LeftShoulderControlMotorsStopped = false;
-      } else if (!Controller1LeftShoulderControlMotorsStopped) {
-        Intake.stop();
-        // set the toggle so that we don't constantly tell the motor to stop when the buttons are released
-        Controller1LeftShoulderControlMotorsStopped = true;
-      }
     }
     // wait before repeating the process
     wait(20, msec);
@@ -106,5 +103,20 @@ int rc_auto_loop_function_Controller1() {
  * This should be called at the start of your int main function.
  */
 void vexcodeInit( void ) {
+  Brain.Screen.print("Device initialization...");
+  Brain.Screen.setCursor(2, 1);
+  // calibrate the drivetrain GPS
+  wait(200, msec);
+  DrivetrainGPS.calibrate();
+  Brain.Screen.print("Calibrating GPS for Drivetrain");
+  // wait for the GPS calibration process to finish
+  while (DrivetrainGPS.isCalibrating()) {
+    wait(25, msec);
+  }
+  // reset the screen now that the calibration is complete
+  Brain.Screen.clearScreen();
+  Brain.Screen.setCursor(1,1);
   task rc_auto_loop_task_Controller1(rc_auto_loop_function_Controller1);
+  wait(50, msec);
+  Brain.Screen.clearScreen();
 }
